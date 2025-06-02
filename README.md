@@ -1,8 +1,8 @@
 <!-- README.md -->
 
 <h1 align="center">
-  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGDfWyb_D349gyXXS_i5BIVRWc0XVP85D0dOhd-1u9u3C6_qFrhVpsz0ASxbFjHREeF6WA2SGGDUaKTWgoKVCdVK5bms8XQ6JbqMM7H8xWkmmX_3eT3f6nzEeUoBBBHw5drpejI2I_qnWN-awunE3vAByF2y4tuatjdaRAGL1r5m7djsgnUVh0f8Pq/s728-rw-e365/rat-malware.png" width="120" alt="Th3Executor logo"><br/>
-  Th3Executor
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGDfWyb_D349gyXXS_i5BIVRWc0XVP85D0dOhd-1u9u3C6_qFrhVpsz0ASxbFjHREeF6WA2SGGDUaKTWgoKVCdVK5bms8XQ6JbqMM7H8xWkmmX_3eT3f6nzEeUoBBBHw5drpejI2I_qnWN-awunE3vAByF2y4tuatjdaRAGL1r5m7djsgnUVh0f8Pq/s728-rw-e365/rat-malware.png" width="120" alt="Oberon logo"><br/>
+  Oberon Framework
 </h1>
 
 <p align="center">
@@ -74,7 +74,7 @@ python3 payload.py
 
 ## ❗ Disclaimer
 
-**Th3Executor is intended for authorised penetration testing and security research purposes only.**
+**Oberon Framework is intended for authorised penetration testing and security research purposes only.**
 
 Any unauthorised or malicious use is strictly prohibited. You are solely responsible for your actions.
 
