@@ -1,49 +1,85 @@
-![image](https://github.com/phantom0004/th3executor/assets/42916447/487d47d1-12e0-4083-8ae3-04e26d463c38)
-# About Th3Executor
+<!-- README.md -->
 
-Th3Executor is a robust tool crafted specifically for penetration testers and security researchers. It offers a comprehensive framework for conducting a wide array of operations on remote systems. From gathering critical system information to establishing persistence and executing payloads, Th3Executor equips users with the necessary tools to navigate complex security scenarios.
+<h1 align="center">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGDfWyb_D349gyXXS_i5BIVRWc0XVP85D0dOhd-1u9u3C6_qFrhVpsz0ASxbFjHREeF6WA2SGGDUaKTWgoKVCdVK5bms8XQ6JbqMM7H8xWkmmX_3eT3f6nzEeUoBBBHw5drpejI2I_qnWN-awunE3vAByF2y4tuatjdaRAGL1r5m7djsgnUVh0f8Pq/s728-rw-e365/rat-malware.png" width="120" alt="Th3Executor logo"><br/>
+  Th3Executor
+</h1>
 
-With Th3Executor, users can seamlessly execute commands and deploy payloads on target systems, enabling them to assess and strengthen system defenses effectively. Whether it's reconnaissance, exploitation, or post-exploitation tasks, Th3Executor streamlines the process, allowing users to focus on their objectives with precision and efficiency.
+<p align="center">
+  A comprehensive offensive-security framework for <strong>penetration testers</strong> and <strong>security researchers</strong>.
+  <br/><br/>
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-usage-workflow">Usage Workflow</a> •
+  <a href="#-screenshots">Screenshots</a> •
+  <a href="#-disclaimer">Disclaimer</a> •
+  <a href="#-license">License</a>
+</p>
 
-## Features
+---
 
-- **Remote Execution:** Execute commands and scripts on remote systems.
-- **System Information:** Gather detailed information about the target system, including OS version, IP address, and more.
-- **Persistence:** Establish persistence on Windows systems by adding the script to the startup registry.
-- **Payload Conversion:** Convert Python payloads to executable files for easier deployment.
-- **Payload Obfuscation:** Obscure Python payloads to evade detection by antivirus software.
-- **Reverse TCP Connections:** Establish reverse TCP connections remotely.
-- **Screenshot Capturing:** Capture screenshots of the target machine's desktop.
-- **Remote Shell Access:** Gain command-line access to target systems.
-- **Keylogger Creation:** Create keyloggers to capture target keystrokes.
-- **Robust Encyrption Algorithms** Secure communication with robust encryption.
-- **Ability to change encyrption keys midconnection:** Dynamically update encryption keys during active connections.
+## ✨ Features
 
-## Snippet of main menu
+- 🖥️ **Remote Command Execution** — Run commands and scripts on remote systems  
+- 📝 **System Intelligence Gathering** — Collect detailed OS, network, and hardware data  
+- 🔒 **Persistence** — Create startup registry entries on Windows targets  
+- 📦 **Payload Conversion** — Package Python payloads as standalone executables  
+- 🕵️ **Payload Obfuscation** — Evade antivirus engines with packing and obfuscation  
+- 🔄 **Reverse TCP** — Establish covert reverse connections  
+- 📸 **Screenshot Capture** — Snap the target desktop in real time  
+- 💻 **Interactive Remote Shell** — Gain a fully interactive CLI session  
+- ⌨️ **Keylogger Generation** — Record keystrokes silently  
+- 🔐 **Robust Encryption** — Protect C2 traffic with strong algorithms  
+- 🔑 **Hot-Swap Keys** — Rotate encryption keys during active sessions  
 
-![image](https://github.com/phantom0004/th3executor/assets/42916447/b75e7677-9309-4f3a-92bc-b299a2c938de)
+---
 
-## Usage
+## 🚀 Quick Start
 
-1. Begin by setting up the payload and server configurations using the setup.py script.
-2. Start the `th3executor.py` server script.
-3. Ensure the target runs either the converted executable or the python file.
-4. Connect to the target system seamlessly.
-5. Execute commands and payloads to achieve your objectives.
-
-## How to run the setup and main program (server):
+# 1 • Configure payload and server
 ```bash
-Setup: python3 executor_setup.py 
-Main Program: python3 th3executor.py
-
-**OPTIONAL (Usually for testing purposes)**
-Payload: python3 payload.py
+python3 executor_setup.py
 ```
 
-## Disclaimer
+# 2 • Launch the C2 server
+```bash
+python3 th3executor.py
+```
 
-Th3Executor is intended for authorized penetration testing and security research purposes only. Misuse of this tool for malicious activities is prohibited. Use it responsibly and ethically.
+# 3 • (Optional) Run the payload locally for testing
+```bash
+python3 payload.py
+```
 
-## License
+---
 
-This project is licensed under the [MIT License](LICENSE).
+## 🛠️ Usage Workflow
+
+1. Setup — Define payload and server options via executor_setup.py  
+2. Serve — Start th3executor.py; wait for inbound sessions  
+3. Deliver — Supply the generated executable or raw Python payload to the target  
+4. Connect — A session appears automatically in the C² console  
+5. Operate — Execute commands, deploy modules, and maintain access  
+
+---
+
+## 🖼️ Screenshots
+
+### TO BE ADDED
+<p align="center">
+  <p></p>
+</p>
+
+---
+
+## ❗ Disclaimer
+
+**Th3Executor is intended for authorised penetration testing and security research purposes only.**
+
+Any unauthorised or malicious use is strictly prohibited. You are solely responsible for your actions.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See the LICENSE file for more details.
