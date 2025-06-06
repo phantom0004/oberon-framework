@@ -12,29 +12,16 @@ import pickle
 import uuid
 import os
 import logging
+import ascii_art
+import subprocess
 
 def intro_banner():
-    banner = colored("""
-  ________  _______ _______  __ ______________  ____________  ____ 
- /_  __/ / / /__  // ____/ |/ // ____/ ____/ / / /_  __/ __ \/ __ \\
-  / / / /_/ / /_ </ __/  |   // __/ / /   / / / / / / / / / / /_/ /
- / / / __  /___/ / /___ /   |/ /___/ /___/ /_/ / / / / /_/ / _, _/ 
-/_/ /_/ /_//____/_____//_/|_/_____/\____/\____/ /_/  \____/_/ |_|  
-   """, "red", attrs=["bold"])
+    banner = colored(ascii_art.oberon_main_banner_1, "red", attrs=["bold"])
     intro_msg = colored("\nSilence the Noise, Amplify the Impact\n", attrs=["bold"])
     print(banner+intro_msg)
 
 def log_banner():
-    banner = """
- ______     __  __     ______     ______     __  __     ______   ______     ______           __         ______     ______       
-/\  ___\   /\_\_\_\   /\  ___\   /\  ___\   /\ \/\ \   /\__  _\ /\  __ \   /\  == \         /\ \       /\  __ \   /\  ___\      
-\ \  __\   \/_/\_\/_  \ \  __\   \ \ \____  \ \ \_\ \  \/_/\ \/ \ \ \/\ \  \ \  __<         \ \ \____  \ \ \/\ \  \ \ \__ \     
- \ \_____\   /\_\/\_\  \ \_____\  \ \_____\  \ \_____\    \ \_\  \ \_____\  \ \_\ \_\        \ \_____\  \ \_____\  \ \_____\    
-  \/_____/   \/_/\/_/   \/_____/   \/_____/   \/_____/     \/_/   \/_____/   \/_/ /_/         \/_____/   \/_____/   \/_____/    
- 
-                                                                                                                                
-"""
-    return banner
+    return ascii_art.oberon_main_banner_2
 
 def start_diffie_hellman_exchange(conn_obj, bits=2048):
     # Generate prime p and base g
@@ -551,31 +538,9 @@ def download(conn_obj, usr_input):
         return "[-] No data has been recieved from the target. This can be due to a network issue, Try again."
 
 def shell_banner():
-    x = colored("x", "red", attrs=["bold"])
-    banner = colored(f"""
-                      :::!~!!!!!:.
-                  .xUHWH!! !!?M88WHX:.
-                .X*#M@$!!  !X!M$$$$$$WWx:.
-               :!!!!!!?H! :!$!$$$$$$$$$$8X:
-              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:
-             :!~::!H!&lt;   ~.U$X!?R$$$$$$$$
-             ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!
-               !:~~~ .:!M"T#$$$$WX??#MRRMMM!
-               ~?WuxiW*`   `"#$$$$8!!!!??!!!
-             :X- M$$$$    {x} `"T#$T~!8$WUXU~
-            :%`  ~#$$$m:        ~!~ ?$$$$$$
-          :!`.-   ~T$$$$8xx.  .xWW- ~""##*"
-.....   -~~:&lt;` !    ~?T#$$@@W@*?$ {x} /`
-W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :
-#"~~`.:x%`!!  !H:   !WM$$$$Ti.: .!WUn+!`
-:::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~
-.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `
-Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!
-$R@i.~~ !     :   ~$$$$$B$$en:``
-?MXT@Wx.~    :     ~"##*$$$$M~
-      """)
-    
-    text = colored("\n- Embrace Power - Command and Conquer with Th3executor \n", attrs=["dark"])    
+    banner = colored(ascii_art.oberon_main_banner_3, attrs=["bold"])
+    text = colored("\n- Embrace Power - Command and Conquer with Th3executor \n", attrs=["dark"]) 
+       
     print(banner + text)
 
 def shell_cheat_sheet():
