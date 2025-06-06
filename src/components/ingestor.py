@@ -1,3 +1,7 @@
+from components.logging import log_activity
+from components.networking import decrypt_message
+import os
+
 def reliable_recieve(conn_obj, data_size):    
     log_activity(f"Connection timeout changed to suit {data_size} bytes of data.", "info")
     conn_obj.settimeout(max(10, data_size / (1024 * 1024)))  # Set dynamic timeout based on size

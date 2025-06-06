@@ -1,3 +1,5 @@
+from components.networking import attempt_exchange
+
 def handle_reconnections(port, conn_obj):
     print(colored("[-] A fatal error has occurred, the target terminated the connection", "red"))
     connection_retry = input("Retry Connection (y/n)? > ").strip().lower()

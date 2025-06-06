@@ -1,5 +1,7 @@
-from components.networking import reliable_recieve, process_and_check_recieved_data
-from th3executor import clear_socket_buffer
+from components.networking import reliable_recieve, process_and_check_recieved_data, clear_socket_buffer
+from components.ingestor import createfile_nocollision
+import time
+from components.logging import log_activity
 
 def screenshot_command(client_output, conn_obj):
     random_image_filename = createfile_nocollision("screenshot_data", ".png")

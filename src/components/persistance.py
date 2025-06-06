@@ -1,3 +1,6 @@
+from components.networking import decrypt_message
+from components.logging import log_activity
+
 def persist_del_command(client_output):
     decrypted_client_message = decrypt_message(client_output).decode()
     if decrypted_client_message == "no_exist":
