@@ -1,3 +1,6 @@
+# ASCII NEEDS TO BE UPDATED TO REFLECT NEW PROJECT NAME!
+
+
 ### OBERON SETUP ASCII ###
 
 oberon_setup_banner_1 = r"""

@@ -109,6 +109,7 @@ def decrypt_message(encrypted_message):
         log_activity(f"An unknown error has occurred in the decryption function: {e}.", "error")
         return None
 
+# KEEP IN THIS FILE
 def print_help_menu(commands):
     banner = colored('\nT H 3 E X E C U T O R   H E L P   M E N U', 'red', attrs=['bold', 'dark'])
     print(banner)
@@ -132,6 +133,7 @@ def print_help_menu(commands):
         print(colored(f"> {command:<15} - {description}", 'white'))
     print(colored('-' * 65, 'red'))
 
+# KEEP IN THIS FILE
 def sys_info_command(client_output):  
     decrypted_client_message = decrypt_message(client_output)
     
