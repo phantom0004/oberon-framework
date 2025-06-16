@@ -1,3 +1,5 @@
+"""Logging helpers for the framework."""
+
 import logging
 import time
 from termcolor import colored
@@ -5,7 +7,9 @@ from components.ingestor import createfile_nocollision
 from oberon_framework import log_banner
 
 
-def configure_logging():
+def configure_logging() -> None:
+    """Configure the global logging module for the framework."""
+
     current_date = time.strftime("%d-%m-%Y", time.localtime())
     log_file = createfile_nocollision(f"log_{current_date}", ".log")
         
@@ -18,10 +22,17 @@ def configure_logging():
     with open(log_file, "w") as file_log:
         file_log.write(log_banner())
 
-def log_activity(audit_message, log_level):
+def log_activity(audit_message: str, log_level: str) -> None:
+    """Write a message to the audit log."""
+
     try:
         logger = logging.getLogger()
         log_func = getattr(logger, log_level.lower())
         log_func(audit_message)
     except Exception as e:
-        print(colored(f"[-] Unable to add log to 'th3executor_activity.log' due to {e}. Skipping audit", "red"))   
+        print(
+            colored(
+                f"[-] Unable to add log to 'th3executor_activity.log' due to {e}. Skipping audit",
+                "red",
+            )
+        )

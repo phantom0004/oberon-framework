@@ -1,10 +1,16 @@
+"""Helper utilities for receiving and storing large pieces of data."""
+
 from components.logging import log_activity
 from components.networking import decrypt_message
 import os
 import uuid
 
-def reliable_recieve(conn_obj, data_size):    
-    log_activity(f"Connection timeout changed to suit {data_size} bytes of data.", "info")
+def reliable_recieve(conn_obj, data_size):
+    """Reliably receive ``data_size`` bytes from ``conn_obj``."""
+
+    log_activity(
+        f"Connection timeout changed to suit {data_size} bytes of data.", "info"
+    )
     conn_obj.settimeout(max(10, data_size / (1024 * 1024)))  # Set dynamic timeout based on size
     
     received_data = b''
@@ -19,9 +25,14 @@ def reliable_recieve(conn_obj, data_size):
     return received_data
 
 def process_and_check_recieved_data(received_data, data_size):
+    """Validate and decrypt received data."""
+
     if isinstance(data_size, str):
-        log_activity(f"Supposed to recieve the data size but got type 'str' instead, output : {data_size}", "error")
-        return (f"[-] Error when getting file data {data_size}. Please try again.") # An error occured, print it
+        log_activity(
+            f"Supposed to recieve the data size but got type 'str' instead, output : {data_size}",
+            "error",
+        )
+        return f"[-] Error when getting file data {data_size}. Please try again."
     
     # Check data integrity
     if len(received_data) != data_size:
@@ -37,6 +48,8 @@ def process_and_check_recieved_data(received_data, data_size):
     return decrypted_data
 
 def createfile_nocollision(header, footer=None):
+    """Create a filename that does not currently exist on disk."""
+
     if footer is None:
         footer = ""
     

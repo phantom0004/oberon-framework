@@ -1,42 +1,54 @@
+"""Utilities for handling network connections with a client."""
+
 from components.networking import attempt_exchange
 from components.logging import log_activity
 from termcolor import colored
 import socket
 
-def handle_reconnections(port, conn_obj):
+def handle_reconnections(port: int, conn_obj: socket.socket):
+    """Attempt to reconnect to the client after an unexpected disconnect."""
+
     print(colored("[-] A fatal error has occurred, the target terminated the connection", "red"))
     connection_retry = input("Retry Connection (y/n)? > ").strip().lower()
     if connection_retry == "y":
         print("\n[!] Reattempting . . .")
         conn_obj = connect_target(port)
-        print(colored("[+] Reconnected to target!", "green", attrs=['bold']))
+        print(colored("[+] Reconnected to target!", "green", attrs=["bold"]))
         log_activity("Reconnected to target successfully.", "info")
         symmetric_key = attempt_exchange(conn_obj)
         if symmetric_key is None:
-            log_activity("Failed to establish a symmetric key with the client during the Diffie-Hellman exchange after reconnection. Check network conditions and client configurations.", "error")
+            log_activity(
+                "Failed to establish a symmetric key during reconnection.", "error"
+            )
             conn_obj.close()
             exit()
 
         return conn_obj, symmetric_key
-    else:
-        log_activity("Program ended because the user did not want to reconnect with the target again.", "info")
-        exit("Program ended")
+
+    log_activity(
+        "Program ended because the user did not want to reconnect with the target again.",
+        "info",
+    )
+    exit("Program ended")
         
-def connect_target(port):
+def connect_target(port: int) -> socket.socket:
+    """Wait for and return a connection from a client."""
+
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Bind the socket to avaliable interface on the specified port
-    listener.bind(('0.0.0.0', port))
+    # Bind the socket to available interface on the specified port
+    listener.bind(("0.0.0.0", port))
 
     # Listen for incoming connections
     listener.listen(1)
     print(f"[!] Listening for incoming connections on port {port} ...")
 
     # Accept a connection when the client connects
-    conn_obj, addr = listener.accept()
+    conn_obj, _ = listener.accept()
     return conn_obj
     
-def disconnect_target(conn_obj, shutdown_signal):
+def disconnect_target(conn_obj: socket.socket, shutdown_signal: str):
+    """Cleanly close the connection to the client."""
     try:
         conn_obj.close()
         log_activity("Exited th3executor, connection terminated successfully on server end", "info")
