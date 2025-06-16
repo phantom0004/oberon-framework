@@ -11,7 +11,22 @@ import time
 from termcolor import colored
 from components.logging import log_activity
 
-# Key Exchange and Encryption
+
+class SecureChannel:
+    """Manage symmetric encryption for a connection."""
+
+    def __init__(self, key: bytes) -> None:
+        self.key = key
+
+    def encrypt(self, plaintext) -> bytes:
+        """Encrypt ``plaintext`` with this channel's key."""
+        return encrypt_message(plaintext, self.key)
+
+    def decrypt(self, encrypted_message: bytes):
+        """Decrypt data using this channel's key."""
+        return decrypt_message(encrypted_message, self.key)
+
+# Key Exchange and Encryption utilities
 
 def start_diffie_hellman_exchange(conn_obj: socket.socket, bits: int = 2048):
     """Perform a Diffie-Hellman key exchange and return a symmetric key."""
@@ -67,30 +82,35 @@ def attempt_exchange(conn_obj: socket.socket):
                 break
 
     print(colored("\n[-] Failed to establish a secure connection after several attempts. Try reconnecting with target!", "red"))
-    return None  # Return None if all attempts fail  
+    return None  # Return None if all attempts fail
 
-def encrypt_message(plaintext) -> bytes:
-    """Encrypt ``plaintext`` using the global symmetric key."""
 
-    global symmetric_key
+def establish_secure_channel(conn_obj: socket.socket) -> "SecureChannel | None":
+    """Perform a key exchange and return a ``SecureChannel`` if successful."""
+    key = attempt_exchange(conn_obj)
+    if key is None:
+        return None
+    return SecureChannel(key)
+
+def encrypt_message(plaintext, key: bytes) -> bytes:
+    """Encrypt ``plaintext`` using ``key``."""
+
     if isinstance(plaintext, str):
         try:
             plaintext = plaintext.encode()
         except BytesWarning:
-            plaintext = plaintext.encode('utf-8')
+            plaintext = plaintext.encode("utf-8")
     else:
         plaintext = pickle.dumps(plaintext)
 
     # Generate a unique 12-byte nonce for each encryption
     nonce = get_random_bytes(12)
-    cipher = ChaCha20.new(key=symmetric_key, nonce=nonce)
+    cipher = ChaCha20.new(key=key, nonce=nonce)
     encrypted_message = cipher.encrypt(plaintext)
-    return nonce + encrypted_message 
+    return nonce + encrypted_message
 
-def decrypt_message(encrypted_message: bytes):
-    """Decrypt ``encrypted_message`` using the global symmetric key."""
-
-    global symmetric_key
+def decrypt_message(encrypted_message: bytes, key: bytes):
+    """Decrypt ``encrypted_message`` using ``key``."""
     
     # Check if the encrypted message has the minimum length for a nonce
     if len(encrypted_message) < 12:
@@ -102,7 +122,7 @@ def decrypt_message(encrypted_message: bytes):
     ciphertext = encrypted_message[12:]
     
     try:
-        cipher = ChaCha20.new(key=symmetric_key, nonce=nonce)
+        cipher = ChaCha20.new(key=key, nonce=nonce)
         decrypted_data = cipher.decrypt(ciphertext)
         # Check if the decrypted data is pickle data (usually for complex data types)
         try:
@@ -136,8 +156,8 @@ def reliable_recieve(conn_obj: socket.socket, data_size: int):
 
     return received_data
 
-def process_and_check_recieved_data(received_data: bytes, data_size):
-    """Validate data length and decrypt the payload."""
+def process_and_check_recieved_data(received_data: bytes, data_size: int, key: bytes):
+    """Validate data length and decrypt the payload using ``key``."""
 
     if isinstance(data_size, str):
         log_activity(
@@ -152,7 +172,7 @@ def process_and_check_recieved_data(received_data: bytes, data_size):
         return "Received data size does not match the expected size."
     
     # If all data is received properly, process it
-    decrypted_data = decrypt_message(received_data)
+    decrypted_data = decrypt_message(received_data, key)
     if decrypted_data is None:
         log_activity("Failed to decrypt screenshot or else data is corrupted. Try again in a little moment.", "error")
         return "Data is corrupted or else is in an invalid format"
@@ -173,3 +193,4 @@ def clear_socket_buffer(conn_obj: socket.socket):
         pass
     finally:
         conn_obj.settimeout(original_timeout)
+

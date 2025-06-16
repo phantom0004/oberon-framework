@@ -24,8 +24,8 @@ def reliable_recieve(conn_obj, data_size):
 
     return received_data
 
-def process_and_check_recieved_data(received_data, data_size):
-    """Validate and decrypt received data."""
+def process_and_check_recieved_data(received_data, data_size, key: bytes):
+    """Validate and decrypt received data using ``key``."""
 
     if isinstance(data_size, str):
         log_activity(
@@ -40,7 +40,7 @@ def process_and_check_recieved_data(received_data, data_size):
         return "Received data size does not match the expected size."
     
     # If all data is received properly, process it
-    decrypted_data = decrypt_message(received_data)
+    decrypted_data = decrypt_message(received_data, key)
     if decrypted_data is None:
         log_activity("Failed to decrypt screenshot or else data is corrupted. Try again in a little moment.", "error")
         return "Data is corrupted or else is in an invalid format"

