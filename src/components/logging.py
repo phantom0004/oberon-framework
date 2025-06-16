@@ -9,8 +9,7 @@ import time
 from typing import Optional
 
 from termcolor import colored
-from components.ingestor import createfile_nocollision
-from oberon_framework import log_banner
+
 
 _LOGGER_NAME = "oberon"
 
@@ -34,6 +33,7 @@ def configure_logging(log_dir: str = "logs", level: int = logging.INFO) -> Path:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     from components.ingestor import createfile_nocollision
+    import ascii_art
 
     current_date = time.strftime("%d-%m-%Y", time.localtime())
 
@@ -61,7 +61,7 @@ def configure_logging(log_dir: str = "logs", level: int = logging.INFO) -> Path:
     logger.addHandler(console_handler)
 
     with open(log_path, "w") as file_log:
-        file_log.write(log_banner())
+        file_log.write(ascii_art.oberon_main_banner_2)
 
     return log_path
 

