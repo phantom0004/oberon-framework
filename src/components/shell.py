@@ -1,9 +1,10 @@
 import components.networking as networking
-from ..oberon_framework import clear_screen
+from oberon_framework import clear_screen
 from components.ingestor import createfile_nocollision
 import time
 import os
 import ascii_art
+from termcolor import colored
 
 def process_shell_prompt(output, conn_obj):
     networking.clear_socket_buffer(conn_obj)
