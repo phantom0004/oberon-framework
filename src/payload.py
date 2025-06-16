@@ -24,18 +24,27 @@ import pyperclip
 import os
 
 def start_diffie_hellman_exchange(conn_obj, bits=2048):
-    received_data = conn_obj.recv(4096).decode().strip()
-    if '\n' not in received_data:
-        raise ValueError
-    
-    p, g, server_public = map(int, received_data.split('\n'))
+    """Perform the client side of the Diffie-Hellman exchange."""
+
+    # Receive the prime, generator and server public key. Read until we have
+    # three newline separated values to avoid partial reads breaking the
+    # exchange.
+    buffer = ""
+    while buffer.count("\n") < 3:
+        chunk = conn_obj.recv(4096).decode()
+        if not chunk:
+            raise ValueError("Incomplete Diffie-Hellman parameters")
+        buffer += chunk
+
+    p, g, server_public = map(int, buffer.split("\n")[:3])
 
     # Generate client's private and public keys
     private_key = getRandomNBitInteger(bits)
     public_key = pow(g, private_key, p)
 
-    # Send client's public key to server
-    conn_obj.sendall(str(public_key).encode())
+    # Send client's public key to the server terminated with a newline so the
+    # server knows when it has received the complete value.
+    conn_obj.sendall(f"{public_key}\n".encode())
 
     # Compute the shared secret
     shared_secret = pow(server_public, private_key, p)

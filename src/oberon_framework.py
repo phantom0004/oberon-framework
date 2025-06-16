@@ -32,13 +32,20 @@ def start_diffie_hellman_exchange(conn_obj, bits=2048):
     private_key = getRandomNBitInteger(bits)
     public_key = pow(g, private_key, p)
 
-    # Send p, g, and server's public key to client
-    conn_obj.sendall(str(p).encode() + b'\n')
-    conn_obj.sendall(str(g).encode() + b'\n')
-    conn_obj.sendall(str(public_key).encode() + b'\n')
+    # Send the parameters in a single payload to avoid the client receiving
+    # partial values which previously caused sync issues.
+    server_payload = f"{p}\n{g}\n{public_key}\n".encode()
+    conn_obj.sendall(server_payload)
 
-    # Receive client's public key
-    client_public_key = int(conn_obj.recv(4096).decode().strip())
+    # Receive the client's public key in a newline terminated format. Continue
+    # reading until a newline is encountered.
+    buffer = b""
+    while b"\n" not in buffer:
+        chunk = conn_obj.recv(4096)
+        if not chunk:
+            raise ConnectionError("Client closed connection during key exchange")
+        buffer += chunk
+    client_public_key = int(buffer.split(b"\n", 1)[0].decode().strip())
 
     # Compute the shared secret
     shared_secret = pow(client_public_key, private_key, p)
