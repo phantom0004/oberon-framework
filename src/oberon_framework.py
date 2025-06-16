@@ -490,7 +490,7 @@ def shell_command(client_output, conn_obj):
             pass
         
         retry_counter = 0
-        while retry_counter != 2:
+        while retry_counter < 3:
             try:
                 output = decrypt_message(conn_obj.recv(4096)).decode()
                 output = output.replace("[NEWLINE]", "\n")
