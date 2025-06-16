@@ -3,12 +3,13 @@
 import logging
 import time
 from termcolor import colored
-from components.ingestor import createfile_nocollision
-from oberon_framework import log_banner
+from ascii_art import oberon_main_banner_2
 
 
 def configure_logging() -> None:
     """Configure the global logging module for the framework."""
+
+    from components.ingestor import createfile_nocollision
 
     current_date = time.strftime("%d-%m-%Y", time.localtime())
     log_file = createfile_nocollision(f"log_{current_date}", ".log")
@@ -20,7 +21,7 @@ def configure_logging() -> None:
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)  
   
     with open(log_file, "w") as file_log:
-        file_log.write(log_banner())
+        file_log.write(oberon_main_banner_2)
 
 def log_activity(audit_message: str, log_level: str) -> None:
     """Write a message to the audit log."""

