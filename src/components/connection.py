@@ -1,4 +1,7 @@
 from components.networking import attempt_exchange
+from components.logging import log_activity
+from termcolor import colored
+import socket
 
 def handle_reconnections(port, conn_obj):
     print(colored("[-] A fatal error has occurred, the target terminated the connection", "red"))
@@ -31,6 +34,7 @@ def connect_target(port):
 
     # Accept a connection when the client connects
     conn_obj, addr = listener.accept()
+    return conn_obj
     
 def disconnect_target(conn_obj, shutdown_signal):
     try:
