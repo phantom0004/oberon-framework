@@ -1,8 +1,11 @@
+"""Handle persistence related client responses."""
+
 from components.networking import decrypt_message
 from components.logging import log_activity
 from termcolor import colored
 
-def persist_del_command(client_output):
+def persist_del_command(client_output) -> str:
+    """Handle the result of a persistence removal command."""
     decrypted_client_message = decrypt_message(client_output).decode()
     if decrypted_client_message == "no_exist":
         return colored("[-] No persistance is currently active on the machine", "red")
@@ -16,7 +19,8 @@ def persist_del_command(client_output):
     
     return colored("[-] Unable to parse persistance output. This operation may or may not have worked", "red")
 
-def persist_command(client_output):  
+def persist_command(client_output) -> str:
+    """Handle the result of a persistence installation command."""
     decrypted_client_message = decrypt_message(client_output).decode()
     if decrypted_client_message == "created":
         log_activity("Th3Executor backdoor installed successfully on target machine. Persistance is now active.", "info")
