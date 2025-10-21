@@ -1,18 +1,16 @@
 <!-- README.md -->
 
 <h1 align="center">
-  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGDfWyb_D349gyXXS_i5BIVRWc0XVP85D0dOhd-1u9u3C6_qFrhVpsz0ASxbFjHREeF6WA2SGGDUaKTWgoKVCdVK5bms8XQ6JbqMM7H8xWkmmX_3eT3f6nzEeUoBBBHw5drpejI2I_qnWN-awunE3vAByF2y4tuatjdaRAGL1r5m7djsgnUVh0f8Pq/s728-rw-e365/rat-malware.png" width="120" alt="Oberon logo"><br/>
-  Oberon Framework <br>
-  STILL IN DEVELOPMENT
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGDfWyb_D349gyXXS_i5BIVRWc0XVP85D0dOhd-1u9u3C6_qFrhVpsz0ASxbFjHREeF6WA2SGGDUaKTWgoKVCdVK5bms8XQ6JbqMM7H8xWkmmX_3eT3f6nzEeUoBBBHw5drpejI2I_qnWN-awunE3vAByF2y4tuatjdaRAGL1r5m7djsgnUVh0f8Pq/s728-rw-e365/rat-malware.png" width="120" alt="Oberon Framework logo"><br/>
+  Oberon Framework
 </h1>
 
 <p align="center">
-  A comprehensive offensive-security framework for <strong>penetration testers</strong> and <strong>security researchers</strong>.
+  <strong>A comprehensive offensive-security framework for penetration testing and security research</strong>
   <br/><br/>
   <a href="#-features">Features</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-usage-workflow">Usage Workflow</a> •
-  <a href="#-screenshots">Screenshots</a> •
+  <a href="#%EF%B8%8F-usage-workflow">Usage Workflow</a> •
   <a href="#-disclaimer">Disclaimer</a> •
   <a href="#-license">License</a>
 </p>
@@ -37,47 +35,45 @@
 
 ## 🚀 Quick Start
 
-# 1 • Configure payload and server
+### 1️⃣ Configure Payload and Server
 ```bash
-python3 executor_setup.py
+python3 src/payload_setup.py
 ```
 
-# 2 • Launch the C2 server
+### 2️⃣ Launch the C2 Server
 ```bash
-python3 th3executor.py
+python3 src/oberon_framework.py
 ```
 
-# 3 • (Optional) Run the payload locally for testing
+### 3️⃣ (Optional) Test Payload Locally
 ```bash
-python3 payload.py
+python3 src/payload.py
 ```
 
 ---
 
 ## 🛠️ Usage Workflow
 
-1. Setup — Define payload and server options via executor_setup.py  
-2. Serve — Start th3executor.py; wait for inbound sessions  
-3. Deliver — Supply the generated executable or raw Python payload to the target  
-4. Connect — A session appears automatically in the C² console  
-5. Operate — Execute commands, deploy modules, and maintain access  
-
----
-
-## 🖼️ Screenshots
-
-### TO BE ADDED
-<p align="center">
-  <p></p>
-</p>
+1. **Setup** — Define payload and server options via `payload_setup.py`
+2. **Serve** — Start `oberon_framework.py` and wait for inbound sessions
+3. **Deliver** — Supply the generated executable or raw Python payload to the target
+4. **Connect** — A session appears automatically in the C² console
+5. **Operate** — Execute commands, deploy modules, and maintain access
 
 ---
 
 ## ❗ Disclaimer
 
-**Oberon Framework is intended for authorised penetration testing and security research purposes only.**
-
-Any unauthorised or malicious use is strictly prohibited. You are solely responsible for your actions.
+> **⚠️ EDUCATIONAL PURPOSE ONLY**
+>
+> **Oberon Framework** is developed exclusively for **educational purposes**, **authorized penetration testing**, and **security research** in controlled environments.
+>
+> - ✅ Use only on systems you own or have **explicit written permission** to test
+> - ✅ Intended for learning cybersecurity concepts and defensive strategies
+> - ❌ **Any unauthorized or malicious use is strictly prohibited**
+> - ❌ Do not use this tool for illegal activities or unauthorized access
+>
+> **You are solely responsible for your actions.** The developers assume no liability for misuse of this framework.
 
 ---
 

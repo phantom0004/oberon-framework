@@ -37,7 +37,7 @@ def process_shell_prompt(output: bytes, conn_obj, key: bytes) -> str:
 
     except:
         print(f"[-] Unable to establish current shell path, using default placeholder instead")
-        shell_prompt = "th3executor_victim_shell > "
+        shell_prompt = "oberon_victim_shell > "
 
     return shell_prompt
 
@@ -57,8 +57,8 @@ def shell_command(client_output: bytes, conn_obj, key: bytes) -> None:
             shell_banner()
             continue
         elif usr_input in ("quit", "exit"):
-            networking.clear_socket_buffer(conn_obj) 
-            print("Redirecting you back to th3executor . . .")
+            networking.clear_socket_buffer(conn_obj)
+            print("Redirecting you back to Oberon Framework . . .")
             time.sleep(1.5)
             clear_screen()
             intro_banner()
@@ -144,8 +144,8 @@ def download(conn_obj, usr_input, key: bytes) -> str:
 def shell_banner() -> None:
     """Display the shell banner."""
     banner = colored(ascii_art.oberon_main_banner_3, attrs=["bold"])
-    text = colored("\n- Embrace Power - Command and Conquer with Th3executor \n", attrs=["dark"]) 
-       
+    text = colored("\n- Silence the Noise, Amplify the Impact \n", attrs=["dark"])
+
     print(banner + text)
 
 def shell_cheat_sheet() -> None:
@@ -196,7 +196,7 @@ def shell_help() -> None:
         "upload <file_path>": "Upload a file to the victim's machine",
         "help": "Display this help menu",
         "commands_help": "Display a windows and linux shell cheat sheet",
-        "exit": "Exit the shell and return to th3executor"
+        "exit": "Exit the shell and return to Oberon Framework"
     }
     
     for command, description in descriptions.items():
