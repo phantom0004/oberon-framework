@@ -51,20 +51,20 @@ def disconnect_target(conn_obj: socket.socket, shutdown_signal: str):
     """Cleanly close the connection to the client."""
     try:
         conn_obj.close()
-        log_activity("Exited th3executor, connection terminated successfully on server end", "info")
+        log_activity("Exited Oberon Framework, connection terminated successfully on server end", "info")
     except Exception as err:
         print("[-] Program ended abruptly, no connection was probably established with target")
-        log_activity(f"Exited th3executor, could not terminate connection on server side -> {err}", "error")
+        log_activity(f"Exited Oberon Framework, could not terminate connection on server side -> {err}", "error")
 
     if not shutdown_signal or shutdown_signal == "connection_not_closed":
         print(colored("[-] Target did not terminate the connection on their end", "red"))
         print(colored("[!] This can be due to a network problem, please wait a few moments before re-connecting", "yellow"))
-        
-        log_activity("Exited th3executor, connection was not terminated on targets end.", "error")
+
+        log_activity("Exited Oberon Framework, connection was not terminated on targets end.", "error")
     elif shutdown_signal == "shutdown_confirmed":
         print(colored("[+] Connection terminated successfully on targets end", "green"))
-        
-        log_activity("Exited th3executor, connection terminated normally between both parties.", "info")
+
+        log_activity("Exited Oberon Framework, connection terminated normally between both parties.", "info")
     else:
         print(colored("[-] Unknown shutdown code retireved, unable to parse output. Connection is probably still open", "red"))
         print(colored("[!] This can be due to a network problem, please wait a few moments before re-connecting", "yellow"))
